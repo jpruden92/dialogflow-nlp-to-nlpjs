@@ -45,11 +45,16 @@ switch (option) {
         break;
     case 'use':
         const text = process.argv[3];
-        if (!text) return console.info('Input text not found.');
+
+        if (!text) {
+            console.info('Input text not found.');
+            process.exit();
+        }
 
         nlpjs.useNLP(text).then(response => {
             console.info(response);
         });
+
         break;
     case 'test':
         getText();
@@ -59,5 +64,6 @@ switch (option) {
         break;
     default:
         console.info('Second parameter is required.');
+        process.exit();
         break;
 }

@@ -47,12 +47,7 @@ const useNLP = userInput => {
     });
 }
 
-const exposeNLP = () => {
-
-}
-
 module.exports = {
     trainNLP,
-    useNLP,
-    exposeNLP
+    useNLP
 }
