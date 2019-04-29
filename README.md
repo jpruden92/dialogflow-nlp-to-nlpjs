@@ -5,7 +5,7 @@
 Gets dialogflow content and generates a NLP.js model that replicates its functionality. You need to export your Dialogflow service account as environment variable:
 
 ```sh
-DIALOGFLOW_CREDENTIALS=my_json_credentials.json index.js train
+DIALOGFLOW_CREDENTIALS=my_json_credentials.json node index.js train
 ```
 
 At the end, you will have a ``dialogflow_model.nlp`` on ``model`` folder.
