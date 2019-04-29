@@ -1,91 +1,63 @@
-const { google } = require('googleapis');
-const { NlpManager } = require('node-nlp');
- 
-const manager = new NlpManager({ languages: ['es'] });
+const nlpjs = require('./tools/nlp.js');
 
-const scopes = require('./scopes.json');
-const agentsCredentials = require('./credentials.json');
-
-const projectId = agentsCredentials.project_id;
-
-const jwtClient = new google.auth.JWT(agentsCredentials.client_email, null, agentsCredentials.private_key, scopes);
-
-google.options({
-    auth: jwtClient
+const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
 });
 
-const dialogflowClient = google.dialogflow('v2');
-const intentsClient = dialogflowClient.projects.agent.intents;
-const sessionClient = dialogflowClient.projects.agent.sessions;
+const express    = require('express');
+const bodyParser = require('body-parser');
+const app        = express();
 
-const getIntentsList = () => {
-    return new Promise((resolve, reject) => {
-        intentsClient.list({
-            parent: `projects/${projectId}/agent`,
-            intentView:'INTENT_VIEW_FULL'
-        }).then(dialogflowIntents => {
-            const intents = dialogflowIntents.data.intents;
-            resolve(intents);
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+const option = process.argv[2];
+
+const getText = () => {
+    readline.question('Enter a text: ', text => {
+        nlpjs.useNLP(text).then(response => {
+            console.info(`Result:\n- [intent]: ${response.intent}\n- [score]: ${response.score}.`);
+            getText();
         });
     });
 }
 
-const getIntent = intentName => {
-    return new Promise((resolve, reject) => {
-        intentsClient.get({
-            name: intentName
-        }).then(intentData => {
-            resolve(intentData);
+const initWebhook = () => {
+    const PORT = process.env.PORT || 3000;
+
+    app.post('/resolve', (req, res) => {
+        const { text } = req.body;
+
+        nlpjs.useNLP(text).then(response => {
+            res.send(response);
         });
     });
+
+    app.listen(PORT, () => {
+        console.info('Listening on PORT ' + PORT);
+    })
 }
 
-const intentToDM = dialogflowIntent => {
-    const dm = {
-        intent: null,
-        trainingPhrases: [],
-        responses: []
-    };
+switch (option) {
+    case 'train':
+        nlpjs.trainNLP();
+        break;
+    case 'use':
+        const text = process.argv[3];
+        if (!text) return console.info('Input text not found.');
 
-    dm.intent = dialogflowIntent.displayName;
-    dialogflowIntent.trainingPhrases.forEach(phrase => {
-        let text = '';
-
-        phrase.parts.forEach(part => {
-            text += part.text;
+        nlpjs.useNLP(text).then(response => {
+            console.info(response);
         });
-
-        dm.trainingPhrases.push(text);
-    });
-
-    if (dialogflowIntent.messages[0].text.text) dm.responses = dialogflowIntent.messages[0].text.text;
-
-    return dm;
+        break;
+    case 'test':
+        getText();
+        break;
+    case 'expose':
+        initWebhook();
+        break;
+    default:
+        console.info('Second parameter is required.');
+        break;
 }
-/*
-getIntentsList().then(intentsList => {
-    intentsList.forEach(intentData => {
-        intentData = intentToDM(intentData);
-
-        intentData.trainingPhrases.forEach(trainingPhrase => {
-            manager.addDocument('es', trainingPhrase, intentData.intent);
-        });
-
-        intentData.responses.forEach(respose => {
-            manager.addAnswer('es', intentData.intent, respose);
-        });
-    });
-
-    (async() => {
-        await manager.train();
-        manager.save();
-        const response = await manager.process('es', 'adios');
-        console.log(response);
-    })();
-});
-*/
-(async() => {
-    manager.load('model.nlp');
-    const response = await manager.process('es', 'que comes');
-    console.log(response);
-})();

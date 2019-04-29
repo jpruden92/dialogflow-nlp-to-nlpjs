@@ -1,4 +1,4 @@
 node_modules
 credentials.json
-model.nlp
+dialogflow_model.nlp
 package-lock.json
