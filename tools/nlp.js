@@ -2,7 +2,9 @@ const dialogflow = require('./dialogflow.js');
 const fs = require('fs');
 
 const { NlpManager } = require('node-nlp');
-const manager = new NlpManager({ languages: ['es'] });
+
+const lang = process.env.LANG || 'es';
+const manager = new NlpManager({ languages: [lang] });
 
 const NLP_MODEL_PATH = __dirname + '/../model/dialogflow_model.nlp';
 
@@ -22,11 +24,11 @@ const trainNLP = () => {
                 intentData = dialogflow.intentToDM(intentData);
 
                 intentData.trainingPhrases.forEach(trainingPhrase => {
-                    manager.addDocument('es', trainingPhrase, intentData.intent);
+                    manager.addDocument(lang, trainingPhrase, intentData.intent);
                 });
 
                 intentData.responses.forEach(response => {
-                    manager.addAnswer('es', intentData.intent, response);
+                    manager.addAnswer(lang, intentData.intent, response);
                 });
             });
 
@@ -35,13 +37,15 @@ const trainNLP = () => {
                 manager.save(NLP_MODEL_PATH);
                 resolve();
             });
+        }).catch((error) => {
+            console.error(error);
         });
     });
 }
 
 const useNLP = userInput => {
     return new Promise((resolve, reject) => {
-        manager.process('es', userInput).then(response => {
+        manager.process(lang, userInput).then(response => {
             resolve(response);
         });
     });

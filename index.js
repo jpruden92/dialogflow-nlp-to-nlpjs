@@ -39,9 +39,10 @@ const initWebhook = () => {
     })
 }
 
-switch (option) {
+(async () => {switch (option) {
     case 'train':
-        nlpjs.trainNLP();
+        await nlpjs.trainNLP();
+        process.exit();
         break;
     case 'use':
         const text = process.argv[3];
@@ -67,3 +68,4 @@ switch (option) {
         process.exit();
         break;
 }
+})();

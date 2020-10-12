@@ -48,6 +48,8 @@ const intentToDM = dialogflowIntent => {
     };
 
     dm.intent = dialogflowIntent.displayName;
+    const hasTrainingPhrases = dialogflowIntent.trainingPhrases !== undefined;
+    if (hasTrainingPhrases) {
     dialogflowIntent.trainingPhrases.forEach(phrase => {
         let text = '';
 
@@ -58,8 +60,8 @@ const intentToDM = dialogflowIntent => {
         dm.trainingPhrases.push(text);
     });
 
-    if (dialogflowIntent.messages[0].text.text) dm.responses = dialogflowIntent.messages[0].text.text;
-
+    if (dialogflowIntent.messages && dialogflowIntent.messages[0].text.text) dm.responses = dialogflowIntent.messages[0].text.text;
+    }
     return dm;
 }
 
