@@ -37,6 +37,8 @@ const trainNLP = () => {
                 manager.save(NLP_MODEL_PATH);
                 resolve();
             });
+        }).catch((error) => {
+            console.error(error);
         });
     });
 }
